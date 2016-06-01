@@ -9,6 +9,6 @@ $website = "https://api.telegram.org/bot".$botToken;
 
 	<input type="text" name="chat_id" value="189041244" />
 	<input type="file" name="photo" />
-	<input type="submit" value="send" />
+	<input type="submit" value="Enviar" />
 
 </form>
