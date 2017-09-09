@@ -23,9 +23,8 @@ function get_vardump($var) {
 };
 
 $updates = file_get_contents("php://input");
-$updates = json_decode($updates, TRUE);
 if (!$updates) { return; };
-if (!$updates["ok"]) { return; };
+$updates = json_decode($updates, TRUE);
 
 $msg = $updates["message"];
 $msg["cb"] = $updates["callback_query"];
