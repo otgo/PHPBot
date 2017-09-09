@@ -4,6 +4,9 @@ return array(
     'var_dump' => false,
     'owners' => array(
         189041244
+    ),
+    'plugins' => array(
+        "forward.php"
     )
 )
 ?>
