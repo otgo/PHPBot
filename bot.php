@@ -23,9 +23,8 @@ function get_vardump($var) {
 };
 
 $updates = file_get_contents("php://input");
-$updates = json_decode($updates, TRUE);
 if (!$updates) { return; };
-if (!$updates["ok"]) { return; };
+$updates = json_decode($updates, TRUE);
 
 $msg = $updates["message"];
 $msg["cb"] = $updates["callback_query"];
@@ -38,20 +37,23 @@ if ($config["var_dump"]) {
     }
 };
 
-for ($i=0; $i<sizeof($config["plugins"]); $i++) {
-    $actual_plugin = include "plugins/".$config["plugins"][$i];
+foreach ($config["plugins"] as $plugin) {
+    $actual_plugin = include_once "plugins/".$plugin;
+    $actioned = false;
     if (isset($actual_plugin["pre_process"])) {
-        call_user_func($actual_plugin["pre_process"], $bot, $msg, $matches);
+        call_user_func($actual_plugin["pre_process"], $msg);
     };
     if (isset($actual_plugin["exe"])) {
-        for ($m=0; $m<sizeof($actual_plugin["patterns"]); $m++) {
-            preg_match($actual_plugin["patterns"][$m], $msg["text"], $matches, PREG_OFFSET_CAPTURE);
+        foreach ($actual_plugin["patterns"] as $pattern) {
+            preg_match($pattern, $msg["text"], $matches, PREG_OFFSET_CAPTURE);
             if ($matches) {
-                call_user_func($actual_plugin["exe"], $bot, $msg, $matches);
+                call_user_func($actual_plugin["exe"], $msg, $matches);
+                $actioned = true;
                 break;
-            }
-        }
+            };
+        };
     };
+    if ($actioned) { break; };
 };
 
 ini_set('display_errors', 1);
