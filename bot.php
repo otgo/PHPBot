@@ -13,62 +13,45 @@ function mdEscape($text) {
     return str_replace(array_keys($rep), array_values($rep), $text);
 };
 
+function get_vardump($var) {
+    ob_start();
+    var_dump($var);
+    return ob_get_clean();
+};
+
 $updates = file_get_contents("php://input");
 $updates = json_decode($updates, TRUE);
 
 $msg = $updates["message"];
-
-$teclado = array(
-    "inline_keyboard" => array(
-        array(
-            array(
-                "text" => "Canal moderatorz",
-                "url" => "https://telegram.me/Moderatorz"
-            ),
-            array(
-                "text" => "Trucos Telegram",
-                "url" => "https://telegram.me/trucostelegram"
-            )
-        ),
-        array(
-            array(
-                "text" => "Google",
-                "url" => "https://google.com"
-            )
-        )
-    )
-);
+$msg["cb"] = $updates["callback_query"];
 
 if ($config["var_dump"]) {
-    ob_start();
-    var_dump($msg);
-    $result = ob_get_clean();
+    $result = get_vardump($msg);
     if ($result) {
-        $bot->sendMessage($config["owners"][0], $result, false, false, false);
+        $bot->sendMessage($config["owners"][0], $result);
         return;
     }
 };
 
-if (isset($msg["forward_from_chat"])) {
-    $username = $msg["forward_from_chat"]["username"]?"@".mdEscape($msg["forward_from_chat"]["username"]):"";
-    $type = $msg["forward_from_chat"]["type"]?"\n*Type*: ".$msg["forward_from_chat"]["type"]:"";
-    $bot->sendReply($msg, $username."\n*Id*: ".$msg["forward_from_chat"]["id"]."\n*Title*: ".mdEscape($msg["forward_from_chat"]["title"]).$type, "markdown", false);
-    return;
-};
-
-if (isset($msg["forward_from"])) {
-    $msg["from"] = $msg["forward_from"];
-};
-
-if (isset($msg["text"]) && isset($msg["from"])) {
-    $last_name = $msg["from"]["last_name"]?"\n*Last*: ".$msg["from"]["last_name"]:"";
-    $username = $msg["from"]["username"]?"@".mdEscape($msg["from"]["username"]):"";
-    $language_code = $msg["from"]["language_code"]?"\n*Lang*: ".$msg["from"]["language_code"]:"";
-    $bot->sendReply($msg, $username."\n*Id*: ".$msg["from"]["id"]."\n*First*: ".mdEscape($msg["from"]["first_name"]).$last_name.$language_code, "markdown", false);
+for ($i=0; $i<sizeof($config["plugins"]); $i++) {
+    $actual_plugin = include "plugins/".$config["plugins"][$i];
+    if (isset($actual_plugin["pre_process"])) {
+        call_user_func($actual_plugin["pre_process"], $bot, $msg, $matches);
+    };
+    if (isset($actual_plugin["exe"])) {
+        for ($m=0; $m<sizeof($actual_plugin["patterns"]); $m++) {
+            preg_match($actual_plugin["patterns"][$m], $msg["text"], $matches, PREG_OFFSET_CAPTURE);
+            if ($matches) {
+                call_user_func($actual_plugin["exe"], $bot, $msg, $matches);
+                break;
+            }
+        }
+    };
 };
 
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
+
 
 ?>
