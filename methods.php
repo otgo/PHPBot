@@ -6,7 +6,7 @@ function APIRequest($method) {
 };
 
 class api {
-    function sendMessage($chat_id, $message, $parse_mode, $reply_markup, $reply_to_message_id) {
+    function sendMessage($chat_id, $message, $parse_mode=NULL, $reply_markup=NULL, $reply_to_message_id=NULL) {
         $url = "sendMessage?chat_id=".$chat_id."&text=".urlencode($message);
         if ($parse_mode) {
             $url .= "&parse_mode=".$parse_mode;
@@ -20,7 +20,7 @@ class api {
         return APIRequest($url);
     }
 
-    function sendReply($msg, $message, $parse_mode, $reply_markup) {
+    function sendReply($msg, $message, $parse_mode=NULL, $reply_markup=NULL) {
         return $this->sendMessage($msg["chat"]["id"], $message, $parse_mode, $reply_markup, $msg["message_id"]);
     }
 };
