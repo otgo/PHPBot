@@ -1,11 +1,14 @@
 <?php
 /* Includes */
+require "predis/autoload.php";
 include 'methods.php';
 $config = include 'config.php';
 
 /* Configuraciones */
 $bot = new api;
+$redis = new Predis\Client();
 $GLOBALS['website'] = "https://api.telegram.org/bot".$config["token"];
+
 /*---------------------------*/
 
 function mdEscape($text) {
@@ -21,6 +24,8 @@ function get_vardump($var) {
 
 $updates = file_get_contents("php://input");
 $updates = json_decode($updates, TRUE);
+if (!$updates) { return; };
+if (!$updates["ok"]) { return; };
 
 $msg = $updates["message"];
 $msg["cb"] = $updates["callback_query"];
