@@ -1,5 +1,6 @@
 <?php
-$pre_process = function ($bot, $msg) {
+$pre_process = function ($msg) {
+    global $bot;
     if (isset($msg["forward_from_chat"])) {
         $username = $msg["forward_from_chat"]["username"]?"@".mdEscape($msg["forward_from_chat"]["username"]):"";
         $type = $msg["forward_from_chat"]["type"]?"\n*Type*: ".$msg["forward_from_chat"]["type"]:"";

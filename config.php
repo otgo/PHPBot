@@ -6,6 +6,7 @@ return array(
         189041244
     ),
     'plugins' => array(
+        "start.php",
         "forward.php"
     )
 )
