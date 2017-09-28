@@ -1,26 +1,16 @@
 <?php
 /* Includes */
-require "predis/autoload.php";
 include 'methods.php';
 $config = include 'config.php';
-
+include 'utils.php';
 /* Configuraciones */
 $bot = new api;
-$redis = new Predis\Client();
+$utils = new utils;
 $GLOBALS['website'] = "https://api.telegram.org/bot".$config["token"];
+$mysqli = new mysqli($config["mysql"]["host"], $config["mysql"]["user"], $config["mysql"]["password"], $config["mysql"]["database"]);
+
 
 /*---------------------------*/
-
-function mdEscape($text) {
-    $rep = array('*' => '\\*', '_' => '\\_', '[' => '\\[', '`' => '\\`');
-    return str_replace(array_keys($rep), array_values($rep), $text);
-};
-
-function get_vardump($var) {
-    ob_start();
-    var_dump($var);
-    return ob_get_clean();
-};
 
 $updates = file_get_contents("php://input");
 if (!$updates) { return; };
@@ -29,12 +19,18 @@ $updates = json_decode($updates, TRUE);
 $msg = $updates["message"];
 $msg["cb"] = $updates["callback_query"];
 
+if ($mysqli->connect_error) {
+    if ($config["report_mysql_errors"]) {
+        $bot->sendMessage($config["owners"][0], "*Error while connecting MySQL*.", "markdown");
+    };
+};
+
 if ($config["var_dump"]) {
-    $result = get_vardump($msg);
+    $result = $utils->get_vardump($msg);
     if ($result) {
         $bot->sendMessage($config["owners"][0], $result);
         return;
-    }
+    };
 };
 
 foreach ($config["plugins"] as $plugin) {
